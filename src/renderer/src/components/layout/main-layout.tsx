@@ -26,7 +26,7 @@ const menuItems = [
 
 export function MainLayout({ children }: { children: React.ReactNode }): JSX.Element {
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="flex min-h-screen bg-background w-[100vw]">
       {/* Desktop sidebar */}
       <Sidebar className="hidden lg:block" />
 
