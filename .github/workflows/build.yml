@@ -5,6 +5,9 @@ on:
     tags:
       - 'v*'
 
+permissions:
+  contents: write
+
 jobs:
   release:
     runs-on: ${{ matrix.os }}
@@ -44,14 +47,17 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Build and release Electron app
+      - name: Build Electron app
+        run: pnpm run build
+
+      - name: Build installers
         run: |
           if [ "$RUNNER_OS" == "Windows" ]; then
-            pnpm build:win
+            pnpm run build:win
           elif [ "$RUNNER_OS" == "macOS" ]; then
-            pnpm build:mac
+            pnpm run build:mac
           else
-            pnpm build:linux
+            pnpm run build:linux
           fi
         shell: bash
         env:
@@ -60,7 +66,7 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: release-artifacts
+          name: ${{ runner.os }}-artifacts
           path: |
             dist/*.exe
             dist/*.dmg
@@ -86,5 +92,7 @@ jobs:
             dist/*.zip
             dist/*.tar.gz
             dist/*.yml
+          draft: false
+          prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
