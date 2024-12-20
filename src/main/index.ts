@@ -1,10 +1,28 @@
-import { app, shell, BrowserWindow, ipcMain } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, session } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
-import icon from '../../resources/icon.png?asset'
 import { mcpmService } from './services/mcpm'
+import icon from '../../resources/icon.svg?asset'
+import { setupRegistryHandlers } from './handlers/registry'
+import { setupImageHandlers } from './handlers/image'
 
 function createWindow(): void {
+  // 设置 CSP
+  session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+    callback({
+      responseHeaders: {
+        ...details.responseHeaders,
+        'Content-Security-Policy': [
+          "default-src 'self';",
+          "img-src 'self' data: https: http:;",
+          "script-src 'self' 'unsafe-inline' 'unsafe-eval';",
+          "style-src 'self' 'unsafe-inline';",
+          "connect-src 'self' https://registry.mcphub.io https://app.mcphub.net;"
+        ].join(' ')
+      }
+    })
+  })
+
   // Create the browser window.
   const mainWindow = new BrowserWindow({
     width: 900,
@@ -14,9 +32,14 @@ function createWindow(): void {
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
-      sandbox: false
+      sandbox: false,
+      nodeIntegration: false,
+      contextIsolation: true,
+      webSecurity: false // 开发环境临时禁用 web 安全策略
     }
   })
+
+  setupImageHandlers()
 
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
@@ -65,6 +88,9 @@ app.whenReady().then(() => {
 
   // IPC test
   ipcMain.on('ping', () => console.log('pong'))
+
+  // Setup handlers
+  setupRegistryHandlers()
 
   createWindow()
 

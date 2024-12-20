@@ -1,55 +1,67 @@
 import React from 'react'
-import { Menu, Home, Settings, Package, Server } from 'lucide-react'
+import { Menu, Home, Settings, Search,  Server } from 'lucide-react'
 import { cn } from '../../lib/utils'
 import { Button } from '../ui/button'
 import { Sheet, SheetContent, SheetTrigger } from '../ui/sheet'
 import { Link, useLocation } from 'react-router-dom'
+import electronLogo from '../../assets/electron.svg'
 
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {}
 
 const menuItems = [
   {
-    title: 'Home',
+    title: 'Welcome',
     icon: Home,
     href: '/'
   },
   {
-    title: 'Contexts',
+    title: 'Discover',
+    icon: Search,
+    href: '/discover'
+  },
+  {
+    title: 'My Servers',
     icon: Server,
     href: '/hosts'
   },
-  {
-    title: 'Protocols',
-    icon: Package,
-    href: '/packages'
-  },
-  {
-    title: 'Settings',
-    icon: Settings,
-    href: '/settings'
-  }
+  // {
+  //   title: 'Chat',
+  //   icon: MessageSquare,
+  //   href: '/chat'
+  // },
+  // {
+  //   title: 'Settings',
+  //   icon: Settings,
+  //   href: '/settings'
+  // }
 ]
 
 export function MainLayout({ children }: { children: React.ReactNode }): JSX.Element {
   return (
-    <div className="flex min-h-screen bg-background w-[100vw]">
+    <div className="h-screen flex overflow-hidden bg-background">
       {/* Desktop sidebar */}
-      <Sidebar className="hidden lg:block" />
+      <div className="hidden lg:flex lg:flex-col lg:fixed lg:inset-y-0">
+        <Sidebar className="w-[240px]" />
+      </div>
 
       {/* Mobile sidebar */}
       <Sheet>
         <SheetTrigger asChild>
-          <Button variant="ghost" className="lg:hidden fixed left-4 top-4">
+          <Button variant="ghost" className="lg:hidden fixed left-4 top-4 z-20">
             <Menu className="h-6 w-6" />
           </Button>
         </SheetTrigger>
-        <SheetContent side="left" className="p-0">
+        <SheetContent side="left" className="w-[240px] p-0">
           <Sidebar />
         </SheetContent>
       </Sheet>
 
       {/* Main content */}
-      <main className="flex-1 overflow-y-auto pt-16 lg:pt-0">{children}</main>
+      <div className="flex-1 lg:pl-[240px]">
+        <main className="h-screen overflow-y-auto pt-16 lg:pt-4 px-4">
+          {children}
+        </main>
+      </div>
     </div>
   )
 }
@@ -58,12 +70,14 @@ function Sidebar({ className }: SidebarProps): JSX.Element {
   const location = useLocation()
   
   return (
-    <div className={cn('pb-12 w-60 border-r bg-background', className)}>
-      <div className="space-y-4 py-4">
+    <div className={cn('h-full flex flex-col border-r bg-background', className)}>
+      <div className="flex-1 py-4">
         <div className="px-3 py-2">
-          <h2 className="mb-2 px-4 text-lg font-semibold">Model Context Protocol</h2>
-          <p className="mb-4 px-4 text-sm text-muted-foreground">MCP Manager</p>
-          <div className="space-y-1">
+          <div className="flex items-center gap-2 px-4 mb-2">
+            <img src={electronLogo} className="w-6 h-6" alt="logo" />
+            <h2 className="text-lg font-semibold">MCPHub</h2>
+          </div>
+          <nav className="space-y-1">
             {menuItems.map((item) => (
               <Link key={item.href} to={item.href}>
                 <Button
@@ -75,7 +89,7 @@ function Sidebar({ className }: SidebarProps): JSX.Element {
                 </Button>
               </Link>
             ))}
-          </div>
+          </nav>
         </div>
       </div>
     </div>
