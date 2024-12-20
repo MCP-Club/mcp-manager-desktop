@@ -1,11 +1,7 @@
-import { access } from 'fs/promises'
-import fs, { constants } from 'fs'
 import { platform } from '@electron-toolkit/utils'
-
-const MAC_CONFIG_PATH = '~/Library/Application Support/Claude/claude_desktop_config.json'
-// $env:AppData\Claude\claude_desktop_config.json
-const WIN_CONFIG_PATH =
-  'C:\\Users\\%username%\\AppData\\Roaming\\Claude\\claude_desktop_config.json'
+import { app } from 'electron'
+import path from 'path'
+import os from 'os'
 
 export interface ClaudeConfig {
   mcpServers?: {
@@ -17,51 +13,41 @@ export interface ClaudeConfig {
   }
 }
 
+const MAC_CONFIG_PATH = path.join(
+  os.homedir(),
+  'Library/Application Support/Claude/claude_desktop_config.json'
+)
+const WIN_CONFIG_PATH = path.join(app.getPath('appData'), 'Claude', 'claude_desktop_config.json')
+
 export class ClaudeHostService {
-  async findClaudeAppDataPath(): Promise<string | null> {
-    if (platform.isMacOS) {
-      return this.findClaudeAppDataPathMac()
+  constructor(
+    private readonly fs = fs.promises,
+    private readonly configPaths = {
+      mac: MAC_CONFIG_PATH,
+      win: WIN_CONFIG_PATH
     }
+  ) {}
 
-    return null
-  }
+  private async getClaudeConfigPath(): Promise<string | null> {
+    const configPath = platform.isMacOS
+      ? this.configPaths.mac
+      : platform.isWindows
+        ? this.configPaths.win
+        : null
 
-  async findClaudeAppDataPathMac(): Promise<string | null> {
-    const DEFAULT_APP_PATH = '/Applications/Claude.app'
-    // test if the app is installed
-    try {
-      await access(DEFAULT_APP_PATH, constants.F_OK)
-      return DEFAULT_APP_PATH
-    } catch {
+    if (!configPath) {
+      console.log('Unsupported platform')
       return null
     }
-  }
 
-  async findClaudeAppDataPathLinux(): Promise<string | null> {
-    return null
-  }
-
-  async findClaudeAppDataPathWindows(): Promise<string | null> {
-    return null
-  }
-
-  async getClaudeConfigPath(): Promise<string | null> {
-    if (platform.isMacOS) {
-      return MAC_CONFIG_PATH
-    }
-    if (platform.isWindows) {
-      return WIN_CONFIG_PATH
-    }
-    return null
+    return configPath
   }
 
   async getClaudeConfig(): Promise<ClaudeConfig | null> {
-    const path = await this.getClaudeConfigPath()
-    if (!path) {
-      return null
-    }
     try {
-      const content = await fs.promises.readFile(path, 'utf8')
+      const configPath = await this.getClaudeConfigPath()
+      if (!configPath) return null
+      const content = await this.fs.readFile(configPath, 'utf8')
       return JSON.parse(content)
     } catch {
       console.log('Claude config not found')
@@ -69,7 +55,7 @@ export class ClaudeHostService {
     }
   }
 
-  async createDefaultClaudeConfig(): Promise<ClaudeConfig> {
+  private async createDefaultClaudeConfig(): Promise<ClaudeConfig> {
     return {
       mcpServers: {}
     }
@@ -80,12 +66,10 @@ export class ClaudeHostService {
   }
 
   async createClaudeConfigFile(): Promise<ClaudeConfig> {
-    const path = await this.getClaudeConfigPath()
-    if (!path) {
-      throw new Error('Claude config path not found')
-    }
     const defaultConfig = await this.createDefaultClaudeConfig()
-    await fs.promises.writeFile(path, this.stringifyClaudeConfig(defaultConfig))
+    const configPath = await this.getClaudeConfigPath()
+    if (!configPath) throw new Error('Unsupported platform')
+    await this.fs.writeFile(configPath, this.stringifyClaudeConfig(defaultConfig))
     console.log('Claude config created')
     return defaultConfig
   }
