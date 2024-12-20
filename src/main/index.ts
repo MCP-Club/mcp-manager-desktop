@@ -2,6 +2,7 @@ import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
+import { mcpmService } from './services/mcpm'
 
 function createWindow(): void {
   // Create the browser window.
@@ -41,6 +42,19 @@ function createWindow(): void {
 app.whenReady().then(() => {
   // Set app user model id for windows
   electronApp.setAppUserModelId('com.electron')
+
+  // Register MCPM IPC handlers
+  ipcMain.handle('mcpm:install', async (_, packageName) => {
+    return await mcpmService.install(packageName)
+  })
+
+  ipcMain.handle('mcpm:uninstall', async (_, packageName) => {
+    return await mcpmService.uninstall(packageName)
+  })
+
+  ipcMain.handle('mcpm:list', async () => {
+    return await mcpmService.list()
+  })
 
   // Default open or close DevTools by F12 in development
   // and ignore CommandOrControl + R in production.
