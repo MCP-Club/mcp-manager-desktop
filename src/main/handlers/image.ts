@@ -1,5 +1,4 @@
 import { ipcMain } from 'electron'
-import { Readable } from 'stream'
 
 export function setupImageHandlers() {
   ipcMain.handle('fetch-image', async (_event, url: string) => {
@@ -17,7 +16,6 @@ export function setupImageHandlers() {
       const buffer = await response.arrayBuffer()
       const base64Data = Buffer.from(buffer).toString('base64')
       const dataUrl = `data:${contentType || 'image/svg+xml'};base64,${base64Data}`
-      
       console.log('Successfully converted image to base64')
       return dataUrl
     } catch (error) {

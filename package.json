@@ -23,8 +23,9 @@
   },
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.1",
-    "@electron-toolkit/utils": "^3.0.0",
+    "@electron-toolkit/utils": "^2.0.0",
     "@mcpm/cli": "^1.4.6",
+    "@mcpm/sdk": "^1.1.4",
     "@radix-ui/react-avatar": "^1.1.2",
     "@radix-ui/react-dialog": "^1.1.3",
     "@radix-ui/react-label": "^2.1.1",
@@ -33,7 +34,10 @@
     "electron-updater": "^6.1.7",
     "lucide-react": "^0.468.0",
     "react-markdown": "^9.0.1",
-    "react-router-dom": "^6.21.1"
+    "react-router-dom": "^6.21.1",
+    "sdk:1.1.2": "link:@mcpm/sdk:1.1.2",
+    "sdk:1.1.3": "link:@mcpm/sdk:1.1.3",
+    "sdk:latest": "link:@mcpm/sdk:latest"
   },
   "devDependencies": {
     "@electron-toolkit/eslint-config-prettier": "^2.0.0",

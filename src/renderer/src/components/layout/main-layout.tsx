@@ -1,5 +1,5 @@
 import React from 'react'
-import { Menu, Home, Settings, Search,  Server } from 'lucide-react'
+import { Menu, Home, Search, Server } from 'lucide-react'
 import { cn } from '../../lib/utils'
 import { Button } from '../ui/button'
 import { Sheet, SheetContent, SheetTrigger } from '../ui/sheet'
@@ -23,7 +23,7 @@ const menuItems = [
     title: 'My Servers',
     icon: Server,
     href: '/hosts'
-  },
+  }
   // {
   //   title: 'Chat',
   //   icon: MessageSquare,
@@ -58,9 +58,7 @@ export function MainLayout({ children }: { children: React.ReactNode }): JSX.Ele
 
       {/* Main content */}
       <div className="flex-1 lg:pl-[240px]">
-        <main className="h-screen overflow-y-auto pt-16 lg:pt-4 px-4">
-          {children}
-        </main>
+        <main className="h-screen overflow-y-auto pt-16 lg:pt-4 px-4">{children}</main>
       </div>
     </div>
   )
@@ -68,7 +66,7 @@ export function MainLayout({ children }: { children: React.ReactNode }): JSX.Ele
 
 function Sidebar({ className }: SidebarProps): JSX.Element {
   const location = useLocation()
-  
+
   return (
     <div className={cn('h-full flex flex-col border-r bg-background', className)}>
       <div className="flex-1 py-4">

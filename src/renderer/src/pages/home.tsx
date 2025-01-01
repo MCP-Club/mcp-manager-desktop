@@ -1,3 +1,4 @@
+import { DependencyList } from '@/components/Dependency'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../components/ui/card'
 
 export default function HomePage(): JSX.Element {
@@ -9,17 +10,18 @@ export default function HomePage(): JSX.Element {
           <CardDescription>Model Context Protocol Management Tool</CardDescription>
         </CardHeader>
         <CardContent>
-          <p className="mb-4">
+          {/* <p className="mb-4">
             Manage your Model Context Protocol configurations and deployments with ease. This tool helps you:
-          </p>
-          <ul className="list-disc pl-6 space-y-2">
+          </p> */}
+          {/* <ul className="list-disc pl-6 space-y-2">
             <li>Configure and manage model contexts</li>
             <li>Deploy and monitor protocol implementations</li>
             <li>Manage model packages and dependencies</li>
             <li>Configure system settings and preferences</li>
-          </ul>
+          </ul> */}
         </CardContent>
       </Card>
+      <DependencyList />
     </div>
   )
 }

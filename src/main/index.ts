@@ -1,10 +1,13 @@
 import { app, shell, BrowserWindow, ipcMain, session } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
-import { mcpmService } from './services/mcpm'
+import { dependencyService, DependencyName } from '@mcpm/sdk'
 import icon from '../../resources/icon.svg?asset'
 import { setupRegistryHandlers } from './handlers/registry'
 import { setupImageHandlers } from './handlers/image'
+import { IPC_CHANNELS } from '@shared/constants'
+
+let mainWindow: BrowserWindow | null = null
 
 function createWindow(): void {
   // 设置 CSP
@@ -24,7 +27,7 @@ function createWindow(): void {
   })
 
   // Create the browser window.
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 900,
     height: 670,
     show: false,
@@ -35,13 +38,17 @@ function createWindow(): void {
       sandbox: false,
       nodeIntegration: false,
       contextIsolation: true,
-      webSecurity: false // 开发环境临时禁用 web 安全策略
+      webSecurity: false // disable web security for development
     }
   })
 
   setupImageHandlers()
 
   mainWindow.on('ready-to-show', () => {
+    if (!mainWindow) {
+      console.error('"mainWindow" is not defined')
+      return
+    }
     mainWindow.show()
   })
 
@@ -62,22 +69,50 @@ function createWindow(): void {
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
+ipcMain.on(IPC_CHANNELS.CHECK_DEPENDENCIES, async () => {
+  if (!mainWindow) return
+  try {
+    const dependencies = await Promise.all([
+      dependencyService.checkDependency(DependencyName.NPM),
+      dependencyService.checkDependency(DependencyName.UX)
+    ])
+    mainWindow.webContents.send(IPC_CHANNELS.DEPENDENCY_STATUS, dependencies)
+  } catch (error) {
+    console.error('Failed to check dependencies:', error)
+  }
+})
+
+ipcMain.on(IPC_CHANNELS.INSTALL_DEPENDENCY, async (_, name: string) => {
+  if (!mainWindow) return
+  console.log(`Installing ${name}`)
+  try {
+    await dependencyService.installDependency(name)
+    const dependencies = await Promise.all([
+      dependencyService.checkDependency(DependencyName.NPM),
+      dependencyService.checkDependency(DependencyName.UX)
+    ])
+    mainWindow.webContents.send(IPC_CHANNELS.DEPENDENCY_STATUS, dependencies)
+  } catch (error) {
+    console.error(`Failed to install ${name}:`, error)
+  }
+})
+
 app.whenReady().then(() => {
   // Set app user model id for windows
   electronApp.setAppUserModelId('com.electron')
 
   // Register MCPM IPC handlers
-  ipcMain.handle('mcpm:install', async (_, packageName) => {
-    return await mcpmService.install(packageName)
-  })
+  // ipcMain.handle('mcpm:install', async (_, packageName) => {
+  //   return await mcpmService.install(packageName)
+  // })
 
-  ipcMain.handle('mcpm:uninstall', async (_, packageName) => {
-    return await mcpmService.uninstall(packageName)
-  })
+  // ipcMain.handle('mcpm:uninstall', async (_, packageName) => {
+  //   return await mcpmService.uninstall(packageName)
+  // })
 
-  ipcMain.handle('mcpm:list', async () => {
-    return await mcpmService.list()
-  })
+  // ipcMain.handle('mcpm:list', async () => {
+  //   return await mcpmService.list()
+  // })
 
   // Default open or close DevTools by F12 in development
   // and ignore CommandOrControl + R in production.
