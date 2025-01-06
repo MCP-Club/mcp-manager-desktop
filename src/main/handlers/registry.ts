@@ -1,7 +1,9 @@
+import { IPC_CHANNELS } from '@shared/constants'
+import { RegistryMCPServerItem } from '@shared/types'
 import { ipcMain } from 'electron'
 
 export function setupRegistryHandlers() {
-  ipcMain.handle('fetch-registry', async (_, query?: string) => {
+  ipcMain.handle(IPC_CHANNELS.FETCH_REGISTRY, async (_, query?: string) => {
     try {
       const url = query
         ? `https://registry.mcphub.io/search?q=${encodeURIComponent(query)}`
@@ -10,14 +12,14 @@ export function setupRegistryHandlers() {
       if (!response.ok) {
         throw new Error('Failed to fetch servers')
       }
-      return await response.json()
+      return await response.json() as RegistryMCPServerItem[]
     } catch (error) {
       console.error('Error fetching registry:', error)
       throw error
     }
   })
 
-  ipcMain.handle('fetch-server-detail', async (_, id: string) => {
+  ipcMain.handle(IPC_CHANNELS.FETCH_SERVER_DETAIL, async (_, id: string) => {
     try {
       const response = await fetch(`https://registry.mcphub.io/registry/${id}`)
       if (!response.ok) {

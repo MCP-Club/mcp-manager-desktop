@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react'
 import { ServerCard } from '@/components/ServerCard'
-import { ServerRegistryItem, convertToServerCardData } from '@/types/server'
 import { Input } from '@/components/ui/input'
 import { Search, Filter, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
+import { IPC_CHANNELS } from '@shared/constants'
+import { MCPServerCardData } from '@/types/server'
+import { RegistryMCPServerItem } from '@shared/types'
 
 export function DiscoverPage() {
-  const [servers, setServers] = useState<ServerRegistryItem[]>([])
+  const [servers, setServers] = useState<MCPServerCardData[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
@@ -28,8 +30,12 @@ export function DiscoverPage() {
     try {
       setLoading(true)
       setError(null)
-      const data = await window.electron.ipcRenderer.invoke('fetch-registry', query)
-      setServers(data)
+      const data: RegistryMCPServerItem[] = await window.electron.ipcRenderer.invoke(IPC_CHANNELS.FETCH_REGISTRY, query)
+      
+      setServers(data.map(registryInfo => ({
+        registryInfo,
+        isInstalled: false,
+      })))
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch servers')
     } finally {
@@ -42,9 +48,9 @@ export function DiscoverPage() {
   }
 
   const LoadingSkeleton = () => (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
       {[...Array(6)].map((_, i) => (
-        <div key={i} className="h-[200px] rounded-lg">
+        <div key={i} className="h-[280px] rounded-lg">
           <Skeleton className="w-full h-full" />
         </div>
       ))}
@@ -104,10 +110,10 @@ export function DiscoverPage() {
         {loading ? (
           <LoadingSkeleton />
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             {servers.length > 0 ? (
               servers.map((server) => (
-                <ServerCard key={server.id} {...convertToServerCardData(server)} />
+                <ServerCard key={server.registryInfo.id} {...server} />
               ))
             ) : (
               <div className="col-span-full text-center py-8">

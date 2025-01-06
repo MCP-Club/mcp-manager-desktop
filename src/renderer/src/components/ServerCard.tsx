@@ -4,40 +4,42 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Check, Download, Loader2, Trash } from 'lucide-react'
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { SecureImage } from '@/components/ui/secure-image'
+import { useSecureImage } from '@/hooks/useSecureImage'
+import { RegistryMCPServerItem } from '@shared/types'
 
 export type InstallStatus = 'install' | 'installing' | 'installed'
 
-export interface ServerCardData {
-  id: string
-  title: string
-  description: string
-  tags: string[]
-  downloads: number
-  author: string
-  version: string
-  installed: boolean
+export interface MCPServerCardData {
+  registryInfo: RegistryMCPServerItem;
+  isInstalled: boolean;
 }
 
-type ServerCardProps = ServerCardData
+export const ServerCard: React.FC<MCPServerCardData> = ({
+  registryInfo, 
+  isInstalled,
+}) => {
+  const {
+    id,
+    title,
+    description,
+    tags,
+    creator,
+    logoUrl,
+  } = registryInfo
 
-export function ServerCard({
-  id,
-  title,
-  description,
-  tags,
-  downloads,
-  author,
-  version,
-  installed
-}: ServerCardProps): JSX.Element {
   const navigate = useNavigate()
   const [installStatus, setInstallStatus] = useState<InstallStatus>(
-    installed ? 'installed' : 'install'
+    isInstalled ? 'installed' : 'install'
   )
   const [buttonHovered, setButtonHovered] = useState(false)
+  const onError = useCallback((error: Error) => {
+    console.error('Failed to load server logo:', error)
+  }, [])
+  const { imageSrc } = useSecureImage(logoUrl!, {
+    onError
+  })
 
   const handleCardClick = () => {
     navigate(`/discover/${id}`)
@@ -78,7 +80,7 @@ export function ServerCard({
 
   return (
     <Card
-      className="w-full max-w-sm h-[200px] overflow-hidden cursor-pointer transition-all duration-200 hover:shadow-lg bg-gradient-to-br from-white to-gray-100 dark:from-gray-800 dark:to-gray-900 shadow-lg hover:shadow-xl transition-shadow duration-200"
+      className="w-full h-[280px] overflow-hidden cursor-pointer transition-all duration-200 hover:shadow-lg bg-gradient-to-br from-white to-gray-100 dark:from-gray-800 dark:to-gray-900 shadow-lg"
       onClick={handleCardClick}
     >
       <CardContent className="p-4 h-full flex flex-col">
@@ -87,23 +89,31 @@ export function ServerCard({
           onClick={(e) => e.stopPropagation()}
         >
           <Avatar className="h-10 w-10 shrink-0">
-            <AvatarImage asChild>
-              <SecureImage
-                src={logoUrl}
-                alt={title}
-                onError={(error) => console.error('Failed to load server logo:', error)}
-              />
-            </AvatarImage>
+            <AvatarImage src={imageSrc} />
             <AvatarFallback>{title[0]}</AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
             <h3 className="text-sm font-semibold truncate">{title}</h3>
             <p className="text-xs text-gray-500 truncate">by {creator}</p>
           </div>
+        </div>
+        <p className="text-sm text-gray-600 dark:text-gray-300 mt-2 mb-auto line-clamp-4 transition-all duration-200">
+          {description}
+        </p>
+        <div className="flex flex-col gap-2">
+          <div className="flex justify-between items-center py-2 border-t border-gray-100 dark:border-gray-700">
+            <div className="flex-1 min-w-0">
+              <div className="flex flex-wrap gap-1.5 max-h-[28px] overflow-hidden">
+                {tags.map((tag, index) => (
+                  <Tag key={index} name={tag} />
+                ))}
+              </div>
+            </div>
+          </div>
           <Button
             variant={installStatus === 'installed' ? 'outline' : 'default'}
             size="sm"
-            className="ml-auto"
+            className="w-full"
             onClick={(e) => {
               e.stopPropagation()
               setInstallStatus(installStatus === 'install' ? 'installing' : 'install')
@@ -113,18 +123,6 @@ export function ServerCard({
           >
             {getButtonContent()}
           </Button>
-        </div>
-        <p className="text-sm text-gray-600 dark:text-gray-300 mt-2 mb-auto line-clamp-2 hover:line-clamp-none transition-all duration-200">
-          {description}
-        </p>
-        <div className="flex justify-between items-center mt-3 pt-2 border-t border-gray-100 dark:border-gray-700">
-          <div className="flex-1 min-w-0 mr-2">
-            <div className="flex flex-wrap gap-1.5 max-h-[28px] overflow-hidden">
-              {tags.map((tag, index) => (
-                <Tag key={index} name={tag} />
-              ))}
-            </div>
-          </div>
         </div>
       </CardContent>
     </Card>

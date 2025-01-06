@@ -14,14 +14,13 @@ import {
   Zap,
   Globe,
   Cloud,
-  Key,
-  Terminal
 } from 'lucide-react'
 import { SecureImage } from '@/components/ui/secure-image'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { IPC_CHANNELS } from '@shared/constants'
 
 export function ServerDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -35,7 +34,7 @@ export function ServerDetailPage() {
     try {
       setLoading(true)
       setError(null)
-      const data = await window.electron.ipcRenderer.invoke('fetch-server-detail', id)
+      const data = await window.electron.ipcRenderer.invoke(IPC_CHANNELS.FETCH_SERVER_DETAIL, id)
       setServer(data)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch server details')
@@ -92,7 +91,7 @@ export function ServerDetailPage() {
     return new Date(dateStr).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
-      day: 'numeric'
+      day: 'numeric',
     })
   }
 

@@ -1,8 +1,5 @@
 import { ipcMain } from 'electron'
 import { IPC_CHANNELS } from '@shared/constants'
-import Debug from 'debug'
-
-const debug = Debug('app::main::handlers::image')
 
 export function setupImageHandlers() {
   ipcMain.handle(IPC_CHANNELS.FETCH_IMAGE, async (_event, url: string) => {
@@ -15,12 +12,12 @@ export function setupImageHandlers() {
       }
 
       const contentType = response.headers.get('content-type')
-      debug('Image content type:', contentType)
+      console.log('Image content type:', contentType)
 
       const buffer = await response.arrayBuffer()
       const base64Data = Buffer.from(buffer).toString('base64')
       const dataUrl = `data:${contentType || 'image/svg+xml'};base64,${base64Data}`
-      debug('Successfully converted image to base64')
+      console.log('Successfully converted image to base64')
       return dataUrl
     } catch (error) {
       console.error('Error in fetch-image handler:', error)

@@ -31,6 +31,7 @@
     "@radix-ui/react-label": "^2.1.1",
     "@radix-ui/react-slot": "^1.1.1",
     "@radix-ui/react-tabs": "^1.1.2",
+    "debug": "^4.4.0",
     "electron-updater": "^6.1.7",
     "lucide-react": "^0.468.0",
     "react-markdown": "^9.0.1",
